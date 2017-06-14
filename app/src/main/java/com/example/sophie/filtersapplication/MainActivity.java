@@ -1,97 +1,77 @@
 package com.example.sophie.filtersapplication;
 
 import android.content.Intent;
-import android.content.pm.ActivityInfo;
-import android.opengl.GLSurfaceView;
-import android.support.v7.app.AppCompatActivity;
+import android.graphics.Bitmap;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.net.Uri;
 import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.Window;
+import android.provider.MediaStore;
+import android.support.v7.app.AppCompatActivity;
+import android.view.View;
+import android.widget.Button;
 
-public class MainActivity extends AppCompatActivity {
-    GLSurfaceView mView;
-    private MenuItem			mItemCapture0;
-    private MenuItem			mItemCapture1;
-    private MenuItem            mItemCapture2;
-    private MenuItem			mItemCapture3;
-    private MenuItem			mItemCapture4;
-    private MenuItem			mItemCapture5;
-    private MenuItem			mItemCapture6;
-    private MenuItem            mItemCapture7;
+import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+
+public class MainActivity extends AppCompatActivity implements
+        android.view.View.OnClickListener {
+    private static final int REQUEST = 1;
+    private Button loadButton;
+    public void OpenGLActivity(Bitmap img)
+    {
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        img.compress(Bitmap.CompressFormat.JPEG, 90, stream);
+        byte[] byteArray = stream.toByteArray();
+
+        Intent intent = new Intent(MainActivity.this, OpenGLActivity.class);
+        intent.putExtra("picture", byteArray);
+        startActivity(intent);
+    }
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        Intent i = new Intent(Intent.ACTION_PICK);
+        i.setType("image/*");
+        startActivityForResult(i, REQUEST);
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        getWindow().getDecorView().setBackgroundColor(Color.BLACK);
+        getSupportActionBar().setBackgroundDrawable(new ColorDrawable(Color.BLACK));
+        loadButton = (Button) findViewById(R.id.button1);
+        loadButton.setOnClickListener(this);
+    }
+
+    @Override
+    public void onClick(View v) {
+
+        Intent i = new Intent(Intent.ACTION_PICK);
+        i.setType("image/*");
+        startActivityForResult(i, REQUEST);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+        Bitmap img = null;
+
+        if (requestCode == REQUEST && resultCode == RESULT_OK) {
+            Uri selectedImage = data.getData();
+            try {
+                img = MediaStore.Images.Media.getBitmap(getContentResolver(), selectedImage);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            OpenGLActivity(img);
+        }
+        super.onActivityResult(requestCode, resultCode, data);
+    }
     // Used to load the 'native-lib' library on application startup.
     static {
         System.loadLibrary("native-lib");
     }
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
-        mView = new GLSurfaceView(this);
-        mView.setEGLContextClientVersion(2);
-        mView.setRenderer(new OpenGLRenderer(this));
-        setContentView(mView);
-    }
-    @Override
-    public void onResume() {
-        super.onResume();
-        mView.onResume();
-    }
-    protected void onPause() {
-        super.onPause();
-        mView.onPause();
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        mItemCapture0 = menu.add("Original");
-        mItemCapture1 = menu.add("Black and white");
-        mItemCapture2= menu.add("Inversion");
-        mItemCapture3 = menu.add("Colorize");
-        mItemCapture4 = menu.add("Multiply");
-        mItemCapture5 = menu.add("Screen");
-        mItemCapture6 = menu.add("Overlay");
-        mItemCapture7 = menu.add("Blur");
-        return true;
-    }
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item == mItemCapture0){
-            OpenGLRenderer.shader_selection = 0;
-            return true;
-        }
-        if (item == mItemCapture1){
-            OpenGLRenderer.shader_selection = OpenGLRenderer.BLACKANDWHITE;
-            return true;
-        }
-        if	(item == mItemCapture2){
-            OpenGLRenderer.shader_selection = OpenGLRenderer.INVERSION;
-            return true;
-        }
-        if	(item == mItemCapture3){
-            OpenGLRenderer.shader_selection = OpenGLRenderer.COLORIZE;
-            return true;
-        }
-        if  (item == mItemCapture4){
-            OpenGLRenderer.shader_selection = OpenGLRenderer.MULTIPLY;
-            return true;
-        }
-        if (item == mItemCapture5){
-            OpenGLRenderer.shader_selection = OpenGLRenderer.SCREEN;
-            return true;
-        }
-        if	(item == mItemCapture6){
-            OpenGLRenderer.shader_selection = OpenGLRenderer.OVERLAY;
-            return true;
-        }
-        if (item == mItemCapture7) {
-            OpenGLRenderer.shader_selection = OpenGLRenderer.BLUR;
-            return true;
-        }
-        return false;
-    }
-
     public native String stringFromJNI();
     public native int intFromJNI(int TestNumber);
     public native int countSum(int[] TestIntArray, int Length);

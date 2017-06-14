@@ -1,20 +1,27 @@
-precision mediump float;                //doesn't work
+precision mediump float; 
 uniform sampler2D u_Texture;
-varying vec2 v_TexCoordinate;
-uniform vec2 u_Scale;
+varying vec2 v_TexCoordinate; 
 
-vec4 sample2points ( vec2 basecoord, vec2 shift )
-{
-return texture2D( u_Texture, basecoord + shift ) +
-texture2D( u_Texture, basecoord - shift );
+vec3 mosaic(vec2 position){
+	vec2 p = floor(position)/8.;
+	return texture2D(u_Texture, p).rgb;
 }
+
+vec2 sw(vec2 p) {return vec2( floor(p.x) , floor(p.y) );}
+vec2 se(vec2 p) {return vec2( ceil(p.x) , floor(p.y) );}
+vec2 nw(vec2 p) {return vec2( floor(p.x) , ceil(p.y) );}
+vec2 ne(vec2 p) {return vec2( ceil(p.x) , ceil(p.y) );}
+
+vec3 glass(vec2 p) {
+	vec2 inter = smoothstep(0., 1., fract(p));
+	vec3 s = mix(mosaic(sw(p)), mosaic(se(p)), inter.x);
+	vec3 n = mix(mosaic(nw(p)), mosaic(ne(p)), inter.x);
+	return mix(s, n, inter.y);
+}
+
 
 void main()
 {
-    gl_FragColor = ( sample2points ( v_TexCoordinate, u_Scale * 1.0 ) +
-                     sample2points ( v_TexCoordinate, u_Scale * 0.1 ) +
-                     sample2points ( v_TexCoordinate, u_Scale * 0.1 ) +
-                     sample2points ( v_TexCoordinate, u_Scale * 0.1 ) +
-                     sample2points ( v_TexCoordinate, u_Scale * 0.1 ) +
-                     texture2D ( u_Texture, v_TexCoordinate ) ) / 11.0;
+	vec3 color = glass(v_TexCoordinate*8.);
+	gl_FragColor = vec4(color, 1.);
 }

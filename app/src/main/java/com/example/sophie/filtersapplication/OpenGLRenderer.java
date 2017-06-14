@@ -1,6 +1,7 @@
 package com.example.sophie.filtersapplication;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
@@ -55,6 +56,7 @@ public class OpenGLRenderer implements GLSurfaceView.Renderer {
     private int mTextureDataHandle0;
     private int mTextureDataHandle1;
 
+    public Bitmap image;
     static public int shader_selection = 0;
     static public final int BLACKANDWHITE= 1;
     static public final int INVERSION = 2;
@@ -63,6 +65,9 @@ public class OpenGLRenderer implements GLSurfaceView.Renderer {
     static public final int SCREEN = 5;
     static public final int OVERLAY = 6;
     static public final int BLUR = 7;
+    static public final int GRADIENT = 8;
+    static public final int SCETCH = 9;
+    static public final int DRAWING = 10;
 
     public OpenGLRenderer(final Context activityContext) {
         mActivityContext = activityContext;
@@ -108,6 +113,9 @@ public class OpenGLRenderer implements GLSurfaceView.Renderer {
             case SCREEN: id = R.raw.screen_fragment_shader;break;
             case OVERLAY: id = R.raw.overlay_fragment_shader;break;
             case BLUR: id = R.raw.blur_fragment_shader; break;
+            case GRADIENT: id = R.raw.gradient_fragment_shader; break;
+            case SCETCH: id = R.raw.scetch_fragment_shader; break;
+            case DRAWING: id = R.raw.draw_fragment_shader; break;
             default: id = R.raw._fragment_shader;break;
         }
         return RawResourceReader.readTextFileFromRawResource(mActivityContext, id);
@@ -135,7 +143,7 @@ public class OpenGLRenderer implements GLSurfaceView.Renderer {
                 lookZ, upX, upY, upZ);
 
         mTextureDataHandle0 = Textures.loadTexture(mActivityContext,  //load the texture
-                R.drawable.sample_picture);
+                R.drawable.sample_picture, image);
 
     }
     @Override
